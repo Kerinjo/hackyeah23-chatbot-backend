@@ -6,7 +6,7 @@ import pymongo
 from django.core.signals import request_finished
 
 
-client = pymongo.MongoClient("mongodb+srv://USER:<eHrJbJtKHuEYZPh8>@messagestorage.drak2ya.mongodb.net/?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://USER:eHrJbJtKHuEYZPh8@messagestorage.drak2ya.mongodb.net/?retryWrites=true&w=majority")
 
 db = client['MessageStorage']
 collection = db['Users']
@@ -40,9 +40,10 @@ def generate_uuid(request):
 
         # Maka a new entry in the database here?
         collection.insert_one({'uuid': str(new_uuid)})
+        collection.insert_one({'history': {}})
 
         # Return the generated UUID as a response
-        response_data = {'uuid': str(new_uuid.uuid)}
+        response_data = {'uuid': str(new_uuid)}
         return JsonResponse(response_data)
     except Exception as e:
         return JsonResponse({'error': str(e)})
