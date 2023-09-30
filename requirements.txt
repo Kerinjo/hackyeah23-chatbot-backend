@@ -8,3 +8,6 @@ advertools==0.13.5
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.22.0
 pandas
+tqdm
+transformers
+torch

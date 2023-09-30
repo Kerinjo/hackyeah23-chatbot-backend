@@ -33,13 +33,5 @@ def choose_resource(query):
     print(df)
 
 
-def choose_colums(query):
-    pass
-
-
-def plot_df(df):
-    pass
-
-
 if __name__ == '__main__':
     get_searches('Jakie są podatki?')
