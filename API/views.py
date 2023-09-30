@@ -32,21 +32,39 @@ def handle_message(request):
 
     return JsonResponse({'error': 'Only POST requests allowed'}, status=405)
 
+
 def generate_uuid(request):
     try:
         # Generate new UUID
         new_uuid = uuid.uuid4()
         print(new_uuid)
 
-        # Maka a new entry in the database here?
-        collection.insert_one({'uuid': str(new_uuid)})
-        collection.insert_one({'history': {}})
+        document = {
+            'uuid': str(new_uuid),
+            'history': {}
+        }
 
+        collection.insert_one(document)
+        
         # Return the generated UUID as a response
         response_data = {'uuid': str(new_uuid)}
         return JsonResponse(response_data)
     except Exception as e:
         return JsonResponse({'error': str(e)})
+
+
+def fetch_messages(request):
+    user_uuid = request.GET.get('user_uuid')
+
+    try:
+        user = collection.find({'user_uuid': user_uuid})
+        if user:
+            return JsonResponse(user['history'])
+        else:
+            return JsonResponse({'error': 'User UUID not found'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+
 
 def close_mongodb_client(sender, **kwargs):
     client.close()
