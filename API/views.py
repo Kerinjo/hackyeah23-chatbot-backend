@@ -7,7 +7,7 @@ import pymongo
 import datetime
 
 
-client = pymongo.MongoClient("mongodb+srv://USER:eHrJbJtKHuEYZPh8@messagestorage.drak2ya.mongodb.net/?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://HOME:SAelfQuoQjxDmZc1@messagestorage.drak2ya.mongodb.net/?retryWrites=true&w=majority")
 
 db = client['MessageStorage']
 collection = db['Users']
@@ -16,51 +16,28 @@ collection = db['Users']
 # from django.views.decorators.csrf import csrf_exempt
 #@csrf_exempt
 def handle_message(request):
-        
-        
-        
     mock_data = {
-            "uuid" : "encepence",
-            "text" : "terefere",
+        "uuid": "encepence",
+        "text": "terefere",
     }
 
     temp_message = {
-        "isClient" : True,
-        "date" : datetime.datetime.now(),
-        "text" : mock_data['text'],
+        "isClient": True,
+        "date": datetime.datetime.now(),
+        "text": mock_data['text'],
     }
-    
-    print(temp_message)
-    
-
 
     if request.method == 'POST':
         try:
-            # Assuming JSON
             data = json.loads(request.body.decode('utf-8'))
             message = data.get('message', '')
-            
-            # processing the message as needed goes here
 
-            # getting json
-            # uuid, message
-            # adding datetime, isClient 
             temp_message = {
-                    "isClient" : True,
-                    "date" : datetime.datetime.now(),
-                    "text" : message,
-                }
-            # TODO:
-            # sending to model
-            # message + history
-            # making message from what model returns
-            # adding date, isClient
-            # inserting to database
+                "isClient": True,
+                "date": datetime.datetime.now(),
+                "text": message,
+            }
 
-
-            # returning message from client and from model
-            
-            # Returning JSON response
             response_data = {'response': 'Response goes here'}
             return JsonResponse(response_data)
 
@@ -74,15 +51,14 @@ def generate_uuid(request):
     try:
         # Generate new UUID
         new_uuid = uuid.uuid4()
-        print(new_uuid)
 
+        # Create document to insert into collection
         document = {
             'uuid': str(new_uuid),
-            'history': []
+            'history': {}
         }
         
-        # uncomment for testing mock data
-        # document['history'] += [{"message" : "hej :)", "date" : datetime.datetime.now()}]
+        # Insert document into collection
         collection.insert_one(document)
         
         # Return the generated UUID as a response
@@ -93,12 +69,12 @@ def generate_uuid(request):
 
 
 def fetch_messages(request):
-    user_uuid = request.GET.get('user_uuid')
+    uuid = request.GET.get('uuid')
 
     try:
-        user = collection.find({'user_uuid': user_uuid})
+        user = collection.find_one({'uuid': uuid})
         if user:
-            return JsonResponse(user['history'])
+            return JsonResponse(user['history'], safe=False)
         else:
             return JsonResponse({'error': 'User UUID not found'})
     except Exception as e:
@@ -110,7 +86,39 @@ def purge(request):
     return HttpResponse('')
 
 
+def add_body(request):
+    user_uuid = "a75a392d-64f3-4c23-9db3-0c9682865ce3"
+
+    mock_data = {
+        "uuid": "encepence",
+        "text": "terefere",
+    }
+
+    temp_message = {
+        "isClient": True,
+        "date": datetime.datetime.now(),
+        "text": mock_data['text'],
+    }
+
+    new_history = [temp_message] * 5
+    
+    user = collection.find_one({'user_uuid': user_uuid})
+    if user:
+        try:
+            collection.update_one(
+                {'uuid': user_uuid},
+                {'$set': {'history': new_history}}
+            )
+            print("History updated successfully.")
+        except Exception as e:
+            print("Error:", e)
+    else:
+        return JsonResponse({'error': 'User UUID not found'})
+
+    return HttpResponse('')
+
 def close_mongodb_client(sender, **kwargs):
     client.close()
 
 request_finished.connect(close_mongodb_client)
+
